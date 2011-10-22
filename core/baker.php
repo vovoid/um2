@@ -103,39 +103,49 @@ class uf_baker
       } 
       else
       {
-        if (is_array(self::$_plugins)) error_log('plugins is array');
+        if (is_array(self::$_plugins))
+        {
+          //error_log('plugins is array');
+        }
         else {
           $trace = debug_backtrace();
           error_log('plugins is not array');
           error_log($trace[3]['function'] . '    '. $trace[3]['file']);
         }
+        $plugin_processed = FALSE;
         foreach (self::$_plugins as $plugin)
         {
-          $plugin->process_file_name($fp, $f, $out);
-        }
-        $ext = substr(strrchr($f,'.'),1);
-        
-        $is_recursive = substr($f,0,2) == 'b_';
-        $is_route     = substr($f,0,2) == 'r_';
-        $is_language  = in_array($ext, array('lang'));
-
-        if($is_language)
-        {
-          $out['dynamic']['language'][] = $fp;
-        }
-        else if($is_recursive || $is_route)
-        {
-          // Get the right ext for php files (routing files excluded)
-          $is_dynamic = $ext == 'php';
-          $dest = 'static';
-          if($is_dynamic)
+          if ($plugin->process_file_name($fp, $f, $out))
           {
-            $dest = 'dynamic';
-            // skip last .php and extract file type, ie file.js.php will return js
-            $ext = substr(strrchr(substr($f,0,strpos($f,'.php')),'.'),1);
+            $plugin_processed = TRUE;
           }
-          
-          $out[ $dest ][$is_route ? 'routing' : $ext][] = $fp;
+        }
+        if (!$plugin_processed)
+        {
+          $ext = substr(strrchr($f,'.'),1);
+
+          $is_recursive = substr($f,0,2) == 'b_';
+          $is_route     = substr($f,0,2) == 'r_';
+          $is_language  = in_array($ext, array('lang'));
+
+          if($is_language)
+          {
+            $out['dynamic']['language'][] = $fp;
+          }
+          else if($is_recursive || $is_route)
+          {
+            // Get the right ext for php files (routing files excluded)
+            $is_dynamic = $ext == 'php';
+            $dest = 'static';
+            if($is_dynamic)
+            {
+              $dest = 'dynamic';
+              // skip last .php and extract file type, ie file.js.php will return js
+              $ext = substr(strrchr(substr($f,0,strpos($f,'.php')),'.'),1);
+            }
+
+            $out[ $dest ][$is_route ? 'routing' : $ext][] = $fp;
+          }
         }
       }
     }
@@ -253,22 +263,6 @@ class uf_baker
     return $output;
   }
 
-  private static function _bake_css($files)
-  {
-    $output = '';
-    if(is_array($files))
-    {
-      foreach($files as $file)
-      {
-        $data = file_get_contents(UF_BASE.$file);
-        $data = str_replace('[uf_module]', self::view_get_baked_modules_dir(), $data);
-        $data = str_replace('[uf_lib]', self::view_get_baked_dir().'/lib', $data);
-        $output .= $data."\n";
-      }
-    }
-    return $output;
-  }
-  
   public static function bake($type)
   {
     $info = explode('_',$type);
@@ -299,15 +293,12 @@ class uf_baker
           case 'js':
             if($place == 'static') 
             {
-              $output .= file_get_contents(UF_BASE.'/core/umvc.js');
+              $output .= file_get_contents(UF_CORE.'/umvc.js');
             }
             $output .= self::_bake_js(self::$_files[$place][$type]);
             break;
           case 'language':
             $output .= self::_bake_language(self::$_files[$place][$type]);
-            break;
-          case 'css':
-            $output .= self::_bake_css(self::$_files[$place][$type]);
             break;
           default:
             if ( isset(self::$_plugins[$type]) )
@@ -377,26 +368,36 @@ class uf_baker
     if (!is_array(self::$_plugins))
     {
       self::$_plugins = array();
+      self::_load_plugin('css');
       self::_load_plugin('images');
       /// TODO: load from config instead.
     }
   }
 
+  public static function bake_by_plugins()
+  {
+    error_log('plugins loaded: '.count(self::$_plugins));
+    $plugins = self::$_plugins;
+    reset($plugins);
+    
+    while (list($type, $object) = each($plugins) )
+    {
+      error_log('baking by plugin: '.$type);
+      self::bake($type);
+    }
+  }
+
   public static function bake_all()
   {
-    ///error_log(self::get_baked_cache_dir());
-    ///error_log(self::get_baked_static_dir());
     self::_delete_directry_content(self::get_baked_cache_dir());
     self::_delete_directry_content(self::get_baked_static_dir());
-    error_log('aaaaaaaaaaaaa');
-    self::bake('images'); // has
+    self::load_plugins();
+    self::bake_by_plugins();
     self::bake('js'); // has
-    self::bake('css'); 
     self::bake('language'); // has
     self::bake('pre_routing'); // has
     self::bake('routing');  // has
     self::bake('post_routing'); // has
-    error_log('bbbbbbbbbbbbb');
   }
 }
 

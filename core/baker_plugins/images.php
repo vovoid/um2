@@ -9,6 +9,7 @@ class bake_images extends uf_baker
     {
       error_log(' adding_to_array');
       $res_array['static']['images'][] = $full_path_to_file;
+      return TRUE;
     }
   }
 
