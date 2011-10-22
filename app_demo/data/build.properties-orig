@@ -30,7 +30,7 @@ propel.home = .
 # You can set this here, but it's preferrable to set this in a 
 # project-specific build.properties file.
 #
-propel.project = umvc
+propel.project = um2
 
 # -------------------------------------------------------------------
 #

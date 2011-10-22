@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<database name="umvc" defaultIdMethod="native">
+<database name="um2" defaultIdMethod="native">
   <table name="test_table" phpName="test_table">
     <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true" />
     <column name="level" type="integer" />

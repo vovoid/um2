@@ -1,11 +1,12 @@
-<?php
+<?
 /**
- * Project: umvc: A Model View Controller framework
+ * Project: µm2 model2 framework
  *
- * @author David Brännvall, Jonatan Wallmander, HR North Sweden AB http://hrnorth.se, Copyright (C) 2011.
+ * @author David Brännvall, Jonatan 'jaw' Wallmander.
+ *        Copyright 2011 HR North Sweden AB http://hrnorth.se
+ *        Copyright 2011 Vovoid Media Technologies http://vovoid.com/um2
  * @see The GNU Public License (GPL)
- */
-/*
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -118,7 +119,7 @@ class uf_controller
     $file = $caller['file'];
     $caller=array_shift($trace);
     
-    $error_string = "\n******* UMVC ERROR *******\n";
+    $error_string = "\n******* UM2 ERROR *******\n";
     $error_string .= 'Controller: '.$controller_identifier."\n";
     $error_string .= 'Action: '.$caller['function']."\n";
     $error_string .= 'File: '.$file."\n";
@@ -135,32 +136,16 @@ class uf_controller
     die();
   }
 
+  // view API
 
-  // Language/translation support in UMVC
-  // For how to build language codes, see
-  // See RFC 5646 (http://tools.ietf.org/html/rfc5646)
-
-  // For optimization purpouses, UMVC limits combinations to
+  //           for info on language codes, see RFC 5646 (http://tools.ietf.org/html/rfc5646)
+  // For optimization purpouses, µm2 limits combinations to
   // the syntax: language-location
   // i.e. en-GB, en-US, en-AU etc.
-  //
 
-  // to support parameter translations, define a method like this (if the action is "debug"), see umvc examples for
+  // to support parameter translations, define a method like this (if the action is "debug"), see examples for
   // a test case
   // parameters coming from the query string for the index action
-  /*public function debug_translate_param($in_parameter_name)
-  {
-    echo 'translate-param';
-    switch ($in_parameter_name)
-    {
-      case 'parameter1': return 'param1';
-      case 'myparameter1': return 'param1';
-      case 'parameter2': return 'param2';
-    }
-  }
-  */
-
-  // view API
 
   // input:    english name
   // returns:  translated name into current language (overridable)
@@ -605,7 +590,6 @@ class uf_view
     {
       $new_uri = $routing_persist_base_uri;
     }
-
 
     $controller = NULL;
     if (empty($controller_name))

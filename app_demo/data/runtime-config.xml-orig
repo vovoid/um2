@@ -13,7 +13,7 @@
       <datasource id="umvc"><!-- this ID must match <database name=""> in schema.xml -->
         <adapter>pgsql</adapter> <!-- sqlite, mysql, myssql, oracle, or pgsql -->
         <connection>
-          <dsn>pgsql:host=localhost;dbname=umvc</dsn>
+          <dsn>pgsql:host=localhost;dbname=um2</dsn>
           <user>my_db_user</user>
           <password>my_db_password</password>
         </connection>
