@@ -23,6 +23,8 @@
 
 error_reporting(E_ALL);
 
+define( 'UF_CORE', UF_BASE.'/core' );
+
 // http://www.php.net/manual/en/security.magicquotes.disabling.php
 ini_set('magic_quotes_gpc', '0');
 if (get_magic_quotes_gpc()) {
@@ -41,13 +43,13 @@ if (get_magic_quotes_gpc()) {
     unset($process);
 }
 
-include_once(UF_BASE.'/core/debug.php');
-require_once(UF_BASE.'/core/application.php');
-require_once(UF_BASE.'/core/baker.php');
-require_once(UF_BASE.'/core/session.php');
-require_once(UF_BASE.'/core/response.php');
-require_once(UF_BASE.'/core/httprequest.php');
-require_once(UF_BASE.'/core/controller.php');
-require_once(UF_BASE.'/core/plugin.php');
+include_once(UF_CORE.'/debug.php');
+require_once(UF_CORE.'/application.php');
+require_once(UF_CORE.'/baker.php');
+require_once(UF_CORE.'/session.php');
+require_once(UF_CORE.'/response.php');
+require_once(UF_CORE.'/httprequest.php');
+require_once(UF_CORE.'/controller.php');
+require_once(UF_CORE.'/plugin.php');
 
 /* EOF */

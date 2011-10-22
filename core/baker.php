@@ -23,11 +23,23 @@
 */
 
 
-require_once(UF_BASE.'/core/umvc.php');
+require_once(UF_CORE.'/umvc.php');
 
 class uf_baker
 {
   private static $_files;
+  private static $_plugins;
+
+  static function _load_plugin($type)
+  {
+    $plugin_filename = UF_CORE.'/baker_plugins/'.$type.'.php';
+    
+    if ( is_file($plugin_filename) )
+    {
+      error_log('loading plugin '.$type.'...');
+      self::$_plugins[$type] =  include($plugin_filename);
+    }
+  }
  
   static function _sort_files($a,$b)
   {
@@ -77,6 +89,7 @@ class uf_baker
 
   private static function _scan_dir_recursive($dir)
   {
+    self::load_plugins();
     $a = scandir(UF_BASE.$dir);
     array_splice($a,0,2);
     $out = array();
@@ -90,9 +103,19 @@ class uf_baker
       } 
       else
       {
+        if (is_array(self::$_plugins)) error_log('plugins is array');
+        else {
+          $trace = debug_backtrace();
+          error_log('plugins is not array');
+          error_log($trace[3]['function'] . '    '. $trace[3]['file']);
+        }
+        foreach (self::$_plugins as $plugin)
+        {
+          $plugin->process_file_name($fp, $f, $out);
+        }
         $ext = substr(strrchr($f,'.'),1);
-        $is_image     = in_array($ext, array('gif', 'png', 'jpg', 'jpeg'));
-        $is_recursive = substr($f,0,2) == 'b_' || $is_image;
+        
+        $is_recursive = substr($f,0,2) == 'b_';
         $is_route     = substr($f,0,2) == 'r_';
         $is_language  = in_array($ext, array('lang'));
 
@@ -100,21 +123,19 @@ class uf_baker
         {
           $out['dynamic']['language'][] = $fp;
         }
-        if($is_image)
-        {
-          $out['static']['images'][] = $fp;       
-        }
         else if($is_recursive || $is_route)
         {
           // Get the right ext for php files (routing files excluded)
           $is_dynamic = $ext == 'php';
+          $dest = 'static';
           if($is_dynamic)
           {
+            $dest = 'dynamic';
             // skip last .php and extract file type, ie file.js.php will return js
             $ext = substr(strrchr(substr($f,0,strpos($f,'.php')),'.'),1);
           }
           
-          $out[$is_dynamic ? 'dynamic' : 'static'][$is_route ? 'routing' : $ext][] = $fp;
+          $out[ $dest ][$is_route ? 'routing' : $ext][] = $fp;
         }
       }
     }
@@ -145,62 +166,6 @@ class uf_baker
         }
       }
     }
-  }
-
-  private static function _bake_images($files)
-  {
-    sort($files, SORT_STRING);
-    foreach($files as $source_file)
-    {
-
-      $bake_base = UF_BASE.'/web/data';
-      $host = uf_application::host();
-      $file = substr(strrchr($source_file, '/'), 1);
-      $file = $source_file;
-      $mp = strpos($source_file, '/modules/');
-
-      $dir =
-        $mp !== FALSE
-            ? uf_application::get_config('app_dir').substr($source_file, $mp)
-          : $dir = $source_file;
-          
-      $mpb = strpos($source_file, '/base/');
-      if ($mpb !== FALSE)
-      {
-        $file = substr($dir, strrpos($source_file,'/') + 1);
-        if ($file[0] == '/') $file = substr($file,1);
-        //echo 'file is: '.$file.'<br />';
-        
-        $dir_t = substr($source_file,$mpb);
-        $dir_t = substr($dir_t, 0, strrpos($dir_t,'/'));
-        //echo 'dir_t: &nbsp; '.$dir_t."<br />";
-        //echo 'dir_t: &nbsp; '.substr($dir_t, 0, strrpos($dir_t,'/'))."<br />";
-
-        $dir = $bake_base.'/baker/'.$host.uf_application::get_config('app_dir').$dir_t;
-      } else
-      {
-        $file = substr($dir, strrpos($dir,'/') + 1);
-        //echo 'file is: '.$file.'<br />';
-        $dir = $bake_base.'/baker/'.$host.substr($dir, 0, strrpos($dir,'/'));
-      }
-
-      if(!is_dir($dir))
-      {
-        mkdir($dir, 0777, TRUE);
-      }
-      /*
-       * Debug output:
-      echo 'dir is: '.$dir.'<br /><br />';
-      echo 'host is:'.$host.'<br />';
-      echo 'bake base is: '.$bake_base.'<br /><br />';
-      echo 'uf base is: '.UF_BASE.'<br /><br />';
-      echo 'copy from: '.UF_BASE.$source_file."<br />";
-      echo 'copy to: '.$dir.'/'.$file."<br/><br/><br />";
-      echo '**********************************<br />';*/
-      copy(UF_BASE.$source_file, $dir.'/'.$file);
-      
-    }
-    //die();
   }
 
   private static function _bake_routing($files,$prefix='')
@@ -272,7 +237,23 @@ class uf_baker
     return $output;
   }
 
-  private static function _bake_default($files)
+  private static function _bake_js($files)
+  {
+    $output = '';
+    if(is_array($files))
+    {
+      foreach($files as $file)
+      {
+        $data = file_get_contents(UF_BASE.$file);
+        $data = str_replace('[uf_module]', self::view_get_baked_modules_dir(), $data);
+        $data = str_replace('[uf_lib]', self::view_get_baked_dir().'/lib', $data);
+        $output .= $data."\n";
+      }
+    }
+    return $output;
+  }
+
+  private static function _bake_css($files)
   {
     $output = '';
     if(is_array($files))
@@ -315,21 +296,27 @@ class uf_baker
           case 'routing':
             $output .= self::_bake_routing(self::$_files[$place][$type],$prefix);
             break;
-          case 'images':
-            $output .= self::_bake_images(self::$_files[$place][$type],$prefix);
-            break;
           case 'js':
             if($place == 'static') 
             {
               $output .= file_get_contents(UF_BASE.'/core/umvc.js');
             }
-            $output .= self::_bake_default(self::$_files[$place][$type]);
+            $output .= self::_bake_js(self::$_files[$place][$type]);
             break;
           case 'language':
             $output .= self::_bake_language(self::$_files[$place][$type]);
             break;
+          case 'css':
+            $output .= self::_bake_css(self::$_files[$place][$type]);
+            break;
           default:
-            $output .= self::_bake_default(self::$_files[$place][$type]);
+            if ( isset(self::$_plugins[$type]) )
+            {
+              $output .= self::$_plugins[$type]->bake__( self::$_files[$place][$type], $prefix );
+            } else
+            {
+              error_log('no baker plugin available for '.$type);
+            }
         }      
       }
       $dir = '';
@@ -385,19 +372,31 @@ class uf_baker
     return '/data/baker/'.uf_application::host().''.uf_application::app_name().'/modules';
   }
 
+  public static function load_plugins()
+  {
+    if (!is_array(self::$_plugins))
+    {
+      self::$_plugins = array();
+      self::_load_plugin('images');
+      /// TODO: load from config instead.
+    }
+  }
+
   public static function bake_all()
   {
     ///error_log(self::get_baked_cache_dir());
     ///error_log(self::get_baked_static_dir());
     self::_delete_directry_content(self::get_baked_cache_dir());
     self::_delete_directry_content(self::get_baked_static_dir());
-    self::bake('images');
-    self::bake('js');
-    self::bake('css');
-    self::bake('language');
-    self::bake('pre_routing');
-    self::bake('routing');
-    self::bake('post_routing');
+    error_log('aaaaaaaaaaaaa');
+    self::bake('images'); // has
+    self::bake('js'); // has
+    self::bake('css'); 
+    self::bake('language'); // has
+    self::bake('pre_routing'); // has
+    self::bake('routing');  // has
+    self::bake('post_routing'); // has
+    error_log('bbbbbbbbbbbbb');
   }
 }
 
