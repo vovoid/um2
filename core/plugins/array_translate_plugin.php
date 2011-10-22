@@ -22,7 +22,7 @@ class array_translate_plugin extends translate_plugin
       $this->namespace = $namespace;
     }
 
-    $filepath = uf_baker::get_baked_cache_dir().'/'.uf_application::host().'/language/language.php';
+    $filepath = uf_baker::get_baked_cache_dir().'/language/baked.language.php';
     if (!is_file($filepath))
     {
       return FALSE;

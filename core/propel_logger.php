@@ -53,13 +53,14 @@ class MyLogger implements BasicLogger
   }
   public function debug($m)
   {
-    //$this->log($m, Propel::LOG_DEBUG);
+    $this->log($m, Propel::LOG_DEBUG);
   }
   
   public function log($message, $severity = null)
   {
     $color = $this->priorityToColor($severity);
-    echo '<p style="color: ' . $color . '">$message</p>';
+    error_log($message);
+    //echo '<p style="color: ' . $color . '">'.$message.'</p>';
   }
   
   private function priorityToColor($priority)

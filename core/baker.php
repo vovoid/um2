@@ -268,11 +268,8 @@ class uf_baker
     }
     $output .= ');' . "\n\n";
     $output .= '?>';
-    if (!is_dir($bake_output_directory))
-    {
-      mkdir($bake_output_directory, 0777, TRUE);
-    }
-    file_put_contents($bake_output_directory.'/language.php', $output);
+    
+    return $output;
   }
 
   private static function _bake_default($files)
@@ -335,13 +332,19 @@ class uf_baker
             $output .= self::_bake_default(self::$_files[$place][$type]);
         }      
       }
-      $bake_base = UF_BASE.'/'.($place == 'dynamic' ? 'cache' : 'web/data');
-
-      $host = uf_application::host();
-      $dir = $bake_base.'/baker'.'/'.$host.uf_application::app_name().'/'.$type;
-      
-      if(/*test !($type == 'routing' && $place == 'static') &&*/ !is_dir($dir))
+      $dir = '';
+      if ($place == 'dynamic')
       {
+        $dir = self::get_baked_cache_dir();
+      } else
+      {
+        $dir = self::get_baked_static_dir();
+      }
+      $dir .= '/'.$type;
+
+      if(!is_dir($dir))
+      {
+        // make dir recursively
         mkdir($dir,0777,TRUE);
       }
 
