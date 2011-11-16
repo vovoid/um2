@@ -90,10 +90,20 @@ class uf_response
   {
     if(strpos($url, '/') === 0)
     {
-      $url = 'http://'.$_SERVER['SERVER_NAME'].($_SERVER['SERVER_PORT'] == 80 ? '' : ':'.$_SERVER['SERVER_PORT']).$url;
+      $url = 'http://'.$_SERVER['HTTP_HOST'].$url; //$_SERVER['HTTP_HOST'] includes the domain and port from original request
     } 
     //header('Location: http://www.google.se');   
     $this->header('Location',$url);
+  }
+  
+  public function redirect_cap(uf_controller $from_controller, $to_controller_name, $to_action_name = NULL, $parameters = NULL, $override_language = '')
+  {
+    $view = new uf_view;
+    $view->set_controller($from_controller);
+    $params = func_get_args();
+    unset($params[0]);
+    $uri = call_user_func_array(array($view, 'cap'), $params);
+    return $this->redirect($uri);
   }
   
   public function data($data = NULL)
