@@ -783,7 +783,7 @@ class uf_view
     {
       $param_name = $this->controller->view_lang_get_parameter_name($key, $request->get_action(), $request->get_controller(), $language);
       if (!empty($param_name)) $new_uri .= '/'.$param_name;
-      if (!empty($val)) $new_uri .= '/'.$val; 
+      if ($val == '') $new_uri .= '/'.$val; 
     }
     return $new_uri;
 
