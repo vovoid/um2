@@ -799,14 +799,24 @@ class uf_view
   public function include_partial($controller, $path)
   {
     $controller_identifier = uf_controller::str_to_controller($controller);
-    $file = uf_application::app_sites_host_dir().'/modules/'.$controller.'/'.$path;
-    if (file_exists($file)) 
+    if($controller_identifier == 'base')
     {
-      return include($file);
-    }
-    else
+      $file = uf_application::app_sites_host_dir().'/'.$controller_identifier.'/'.$path;      
+      if (file_exists($file))
+      {
+        return include($file);        
+      }
+    } else
     {
-      return include(uf_application::app_dir().'/modules/'.$controller.'/'.$path);
+      $file = uf_application::app_sites_host_dir().'/modules/'.$controller_identifier.'/'.$path;
+      if (file_exists($file)) 
+      {
+        return include($file);
+      }
+      else
+      {
+        return include(uf_application::app_dir().'/modules/'.$controller_identifier.'/'.$path);
+      }
     }
   }
 }
