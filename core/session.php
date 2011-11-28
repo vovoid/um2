@@ -92,6 +92,7 @@ class uf_session
   }
 }
 
+if (uf_application::get_config('automatic_session_start',1))
 session_start();
 
 /* EOF */
