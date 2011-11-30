@@ -24,6 +24,7 @@
 class uf_http_request
 {
   private $_is_post;
+  private $_is_ajax;
   private $_segments;
   private $_parameters;
   private $_uri_parameters;
@@ -126,6 +127,7 @@ class uf_http_request
   public function __construct()
   {
     $this->_is_post = count($_POST) > 0;
+    $this->_is_ajax = @strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 
     // TODO: parse out the language from the beginning of the string
 
@@ -276,6 +278,11 @@ class uf_http_request
   public function is_post()
   {
     return $this->_is_post;
+  }
+
+  public function is_ajax()
+  {
+    return $this->_is_ajax;
   }
 }
 
