@@ -16,6 +16,7 @@ class array_translate_plugin extends translate_plugin
       $filename = str_replace(uf_application::app_dir(), '', $filename);
       $filename = str_replace(UF_BASE, '', $filename);
       $filename = preg_replace('/\/sites\/hosts\/.+?\.se\//', '/', $filename);
+      $filename = preg_replace('/\/sites\/projects\/.+?\//', '/', $filename);
       $filename = str_replace('/', '.', $filename);
       $this->namespace = $filename;
     } 
