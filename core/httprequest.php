@@ -148,12 +148,7 @@ class uf_http_request
       // validate the language against the language file
       $test_string = substr($uri,1,$uri_lang_len);
       
-      $languages_file = UF_BASE.'/config/languages.php';
-      $languages = 0;
-      if(file_exists($languages_file)) 
-      {
-        $languages = include_once($languages_file);
-      }
+      $languages = uf_application::get_config('languages','');
       if (is_array($languages))
       {
         foreach ($languages as $lang)
@@ -161,7 +156,7 @@ class uf_http_request
           if ($test_string === $lang)
           {
             uf_application::set_language($lang);
-                  $uri = substr($uri,$uri_lang_len+1);
+            $uri = substr($uri,$uri_lang_len+1);
           }
         }
       }
