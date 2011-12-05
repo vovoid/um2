@@ -578,6 +578,18 @@ class uf_view
   {
     $this->controller = $new_controller;
   }
+  
+  public function lang_get()
+  {
+    $lang_uri = '';
+    $language = uf_application::get_language();
+    if (uf_application::is_language_overridden())
+    {
+      // add language prefix
+      $lang_uri = '/'.$language;
+    }
+    return $lang_uri;
+  }
 
   public function lang_build_uri_module($module, $values = NULL, $override_language = '')
   {
