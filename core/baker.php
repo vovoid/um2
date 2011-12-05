@@ -241,13 +241,15 @@ class uf_baker
     {
       return NULL;
     }
-
+error_log('baking language');
     $output = '<?php' . "\n";
     $output .= 'return array('. "\n";
     $bake_output_directory = self::get_baked_cache_dir().'/'.uf_application::host().'/language';
-    
+    $output_array = array();
+    sort($files);
     foreach ($files as $file)
     {
+      error_log($file);
       $strings = parse_ini_file(UF_BASE.$file, TRUE);
 
       if (!isset($strings['locale']))
@@ -262,9 +264,14 @@ class uf_baker
       {
         foreach ($sections as $skey => $section)
         {
-          $output .= "'".addslashes($namespace.'.'.$locale.'.'.$skey)."' => '".addslashes($section)."',". "\n";
+          $output_array[addslashes($namespace.'.'.$locale.'.'.$skey)] = addslashes($section);
+          //$output .= "'".addslashes($namespace.'.'.$locale.'.'.$skey)."' => '".addslashes($section)."',". "\n";
         }
       }
+    }
+    foreach ($output_array as $namespace => $section)
+    {
+      $output .= "'".$namespace."' => '".$section."', \n";
     }
     $output .= ');' . "\n\n";
     $output .= '?>';
