@@ -279,6 +279,54 @@ class uf_http_request
   {
     return $this->_is_ajax;
   }
+  
+  public static function routing_apply_to_string($uri)
+  {
+    $uri_lang_len = NULL;
+     
+    // /uk/
+    if (strlen($uri) > 4 && $uri[3] === '/') $uri_lang_len = 2;
+    else
+    // /en-us/
+    if (strlen($uri) >= 7 && $uri[6] === '/') $uri_lang_len = 5;
+
+    if (NULL !== $uri_lang_len) // we got ourselves a language
+    {
+      // validate the language against the language file
+      $test_string = substr($uri,1,$uri_lang_len);
+      
+      $languages = uf_application::get_config('languages','');
+      if (is_array($languages))
+      {
+        foreach ($languages as $lang)
+        {
+          if ($test_string === $lang)
+          {
+            $uri = substr($uri,$uri_lang_len+1);
+          }
+        }
+      }
+    }
+
+    $pos = strpos($uri,'?');
+    if($pos !== FALSE)
+    {
+      $uri = substr($uri,0,$pos);
+    }
+
+    //if ($uri[strlen($uri)-1] == '/') $uri = substr($uri,0,-1);
+    
+    $uri_segments = explode('/',substr($uri,1));
+    //error_log('dump from httprequest: '.$uri_segments[0]);
+    
+    $routing_file = uf_baker::get_baked_cache_dir().'/routing/baked.routing.php';
+    
+    if(file_exists($routing_file))
+    {
+      include($routing_file);
+    }
+    return $uri_segments;
+  }
 }
 
 ?>
