@@ -769,7 +769,7 @@ class uf_view
       {
         if ($val === NULL)
         {
-          unset($get_parameters[$key]);
+          unset($parameters[$key]);
         }
         else
         {
