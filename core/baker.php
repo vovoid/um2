@@ -288,6 +288,7 @@ error_log('baking language');
       {
         $data = file_get_contents(UF_BASE.$file);
         $data = str_replace('[uf_module]', self::view_get_baked_modules_dir(), $data);
+        $data = str_replace('[uf_base]', self::view_get_baked_base_dir(), $data);
         $data = str_replace('[uf_lib]', self::view_get_baked_dir().'/lib', $data);
         $output .= $data."\n";
       }
@@ -385,6 +386,10 @@ error_log('baking language');
   public static function view_get_baked_dir()
   {
     return '/data/baker/'.uf_application::host().uf_application::app_name();
+  }
+  public static function view_get_baked_base_dir()
+  {
+    return '/data/baker/'.uf_application::host().''.uf_application::app_name().'/base';
   }
   // get the baked modules dir for views - images etc
   public static function view_get_baked_modules_dir()
