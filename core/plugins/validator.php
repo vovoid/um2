@@ -47,7 +47,7 @@ class validator_helper
   public function add_rule($name, $callback)
   {
     $name = uf_controller::str_to_controller($name);
-    $this->_rules[$name] = array('callback' => $callback);
+    $this->_rules[$name][] = array('callback' => $callback);
   }
 
   public function validate()
@@ -58,27 +58,33 @@ class validator_helper
     {
       $key = uf_controller::str_to_controller($key);
       if(array_key_exists($key, $this->_rules)) {
-        $message_id = '';
-        
-        $callback = $this->_rules[$key]['callback'];
-        
-        $r = is_array($callback)
-          ? call_user_func($callback, $val, $message_id)
-          : $callback($val, $message_id);
-
-        if(!$r)
+        $result_for_key = TRUE;
+        foreach($this->_rules[$key] as $rules)
         {
-          $message = !is_null($this->_translate_callback)
-            ? call_user_func($this->_translate_callback, $message_id)
-            : $message_id; 
-          $data = array(
-            'form_id' => $this->_form_id,
-            'name' => $key,
-            'message' => $message);
-          $this->_response->javascript('$(function(){umvc.trigger("umvc.validator.error",'.json_encode($data).');});');
-          $result = FALSE;
+          $message_id = '';
+
+          // Call validator function
+          $callback = $rules['callback'];
+          $r = is_array($callback)
+            ? call_user_func($callback, $val, $message_id)
+            : $callback($val, $message_id);
+
+          if(!$r)
+          {
+            // The validator failed so trigger an event for it
+            $message = !is_null($this->_translate_callback)
+              ? call_user_func($this->_translate_callback, $message_id)
+              : $message_id; 
+            $data = array(
+              'form_id' => $this->_form_id,
+              'name' => $key,
+              'message' => $message);
+            $this->_response->javascript('$(function(){umvc.trigger("umvc.validator.error",'.json_encode($data).');});');
+            $result = FALSE;
+            $result_for_key = FALSE;
+          }
         }
-        $this->_result[$key] = $r;
+        $this->_result[$key] = $result_for_key;
       }
     }
 
