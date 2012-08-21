@@ -841,7 +841,7 @@ class uf_view
   //                               'view/footer.php'
   public function include_partial($controller, $path)
   {
-    $partial_file = $this->get_partal_filename($controller, $path);
+    $partial_file = uf_view::get_partal_filename($controller, $path);
     if(file_exists($partial_file))
     {
       return include($partial_file);
