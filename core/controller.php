@@ -801,6 +801,37 @@ class uf_view
 
   }
 
+  // get full path for file from the view directory
+  //   these files can be overridden in the hosts directories.
+  //   parameters:
+  //     $controller     the internal (english) name of a valid controller
+  //     $path           the relative path to the file you want to include.
+  //                     Examples: 'view/sub_views/static_list.html'
+  //                               'view/footer.php'
+  public function get_partal_filename($controller, $path)
+  {
+    $controller_identifier = uf_controller::str_to_controller($controller);
+    if($controller_identifier == 'base')
+    {
+      $file = uf_application::app_sites_host_dir().'/'.$controller_identifier.'/'.$path;      
+      if (file_exists($file))
+      {
+        return $file;
+      }
+    } else
+    {
+      $file = uf_application::app_sites_host_dir().'/modules/'.$controller_identifier.'/'.$path;
+      if (file_exists($file)) 
+      {
+        return $file;
+      }
+      else
+      {
+        return uf_application::app_dir().'/modules/'.$controller_identifier.'/'.$path;
+      }
+    }
+  }
+
   // includes a file from the view directory
   //   these files can be overridden in the hosts directories.
   //   parameters:
@@ -810,25 +841,10 @@ class uf_view
   //                               'view/footer.php'
   public function include_partial($controller, $path)
   {
-    $controller_identifier = uf_controller::str_to_controller($controller);
-    if($controller_identifier == 'base')
+    $partial_file = $this->get_partal_filename($controller, $path);
+    if(file_exists($partial_file))
     {
-      $file = uf_application::app_sites_host_dir().'/'.$controller_identifier.'/'.$path;      
-      if (file_exists($file))
-      {
-        return include($file);        
-      }
-    } else
-    {
-      $file = uf_application::app_sites_host_dir().'/modules/'.$controller_identifier.'/'.$path;
-      if (file_exists($file)) 
-      {
-        return include($file);
-      }
-      else
-      {
-        return include(uf_application::app_dir().'/modules/'.$controller_identifier.'/'.$path);
-      }
+      return include($partial_file);
     }
   }
 }
