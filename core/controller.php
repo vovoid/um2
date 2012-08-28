@@ -40,7 +40,11 @@ class uf_controller
       $file = uf_application::app_dir().'/modules/'.$controller_identifier.'/view/v_'.$view.'.php';
       if(!is_file($file))
       {
-        $file = uf_application::app_dir().'/lib/view/v_'.$view.'.php';
+        $file = uf_application::app_sites_host_dir().'/base/view/v_'.$view.'.php';
+        if(!is_file($file))
+        {
+          $file = uf_application::app_dir().'/lib/view/v_'.$view.'.php';
+        }        
       }
     }    
     uf_include_view($this,$file, $data);
@@ -559,6 +563,18 @@ class uf_view
   {
     $this->controller = $new_controller;
   }
+  
+  public function lang_get()
+  {
+    $lang_uri = '';
+    $language = uf_application::get_language();
+    if (uf_application::is_language_overridden())
+    {
+      // add language prefix
+      $lang_uri = '/'.$language;
+    }
+    return $lang_uri;
+  }
 
   public function lang_build_uri_module($module, $values = NULL, $override_language = '')
   {
@@ -737,7 +753,7 @@ class uf_view
       {
         if ($val === NULL)
         {
-          unset($get_parameters[$key]);
+          unset($parameters[$key]);
         }
         else
         {
@@ -763,10 +779,41 @@ class uf_view
     {
       $param_name = $this->controller->view_lang_get_parameter_name($key, $request->get_action(), $request->get_controller(), $language);
       if (!empty($param_name)) $new_uri .= '/'.$param_name;
-      $new_uri .= '/'.$val;
+      if ($val != '' || $val === 0) $new_uri .= '/'.$val; 
     }
     return $new_uri;
 
+  }
+
+  // get full path for file from the view directory
+  //   these files can be overridden in the hosts directories.
+  //   parameters:
+  //     $controller     the internal (english) name of a valid controller
+  //     $path           the relative path to the file you want to include.
+  //                     Examples: 'view/sub_views/static_list.html'
+  //                               'view/footer.php'
+  public function get_partal_filename($controller, $path)
+  {
+    $controller_identifier = uf_controller::str_to_controller($controller);
+    if($controller_identifier == 'base')
+    {
+      $file = uf_application::app_sites_host_dir().'/'.$controller_identifier.'/'.$path;      
+      if (file_exists($file))
+      {
+        return $file;
+      }
+    } else
+    {
+      $file = uf_application::app_sites_host_dir().'/modules/'.$controller_identifier.'/'.$path;
+      if (file_exists($file)) 
+      {
+        return $file;
+      }
+      else
+      {
+        return uf_application::app_dir().'/modules/'.$controller_identifier.'/'.$path;
+      }
+    }
   }
 
   // includes a file from the view directory
@@ -778,15 +825,10 @@ class uf_view
   //                               'view/footer.php'
   public function include_partial($controller, $path)
   {
-    $controller_identifier = uf_controller::str_to_controller($controller);
-    $file = uf_application::app_sites_host_dir().'/modules/'.$controller.'/'.$path;
-    if (file_exists($file)) 
+    $partial_file = uf_view::get_partal_filename($controller, $path);
+    if(file_exists($partial_file))
     {
-      return include($file);
-    }
-    else
-    {
-      return include(uf_application::app_dir().'/modules/'.$controller.'/'.$path);
+      return include($partial_file);
     }
   }
 }

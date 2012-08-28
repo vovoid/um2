@@ -158,8 +158,9 @@ class uf_baker
     {
       $lib = self::_scan_dir_recursive(uf_application::app_dir(FALSE).'/lib');
       $modules = self::_scan_dir_recursive(uf_application::app_dir(FALSE).'/modules');
+      $errors = self::_scan_dir_recursive(uf_application::app_dir(FALSE).'/errors');
       $hosts   = self::_scan_dir_recursive(uf_application::app_sites_host_dir(FALSE));
-      self::$_files = array_merge_recursive($lib,$modules,$hosts);
+      self::$_files = array_merge_recursive($lib,$modules,$hosts,$errors);
 
       if(isset(self::$_files['static']))
       {
@@ -216,13 +217,15 @@ class uf_baker
     {
       return NULL;
     }
-
+error_log('baking language');
     $output = '<?php' . "\n";
     $output .= 'return array('. "\n";
     $bake_output_directory = self::get_baked_cache_dir().'/'.uf_application::host().'/language';
-    
+    $output_array = array();
+    sort($files);
     foreach ($files as $file)
     {
+      error_log($file);
       $strings = parse_ini_file(UF_BASE.$file, TRUE);
 
       if (!isset($strings['locale']))
@@ -237,9 +240,14 @@ class uf_baker
       {
         foreach ($sections as $skey => $section)
         {
-          $output .= "'".addslashes($namespace.'.'.$locale.'.'.$skey)."' => '".addslashes($section)."',". "\n";
+          $output_array[addslashes($namespace.'.'.$locale.'.'.$skey)] = addslashes($section);
+          //$output .= "'".addslashes($namespace.'.'.$locale.'.'.$skey)."' => '".addslashes($section)."',". "\n";
         }
       }
+    }
+    foreach ($output_array as $namespace => $section)
+    {
+      $output .= "'".$namespace."' => '".$section."', \n";
     }
     $output .= ');' . "\n\n";
     $output .= '?>';
@@ -256,6 +264,7 @@ class uf_baker
       {
         $data = file_get_contents(UF_BASE.$file);
         $data = str_replace('[uf_module]', self::view_get_baked_modules_dir(), $data);
+        $data = str_replace('[uf_base]', self::view_get_baked_base_dir(), $data);
         $data = str_replace('[uf_lib]', self::view_get_baked_dir().'/lib', $data);
         $output .= $data."\n";
       }
@@ -356,6 +365,10 @@ class uf_baker
   public static function view_get_baked_dir()
   {
     return '/data/baker/'.uf_application::host().uf_application::app_name();
+  }
+  public static function view_get_baked_base_dir()
+  {
+    return '/data/baker/'.uf_application::host().''.uf_application::app_name().'/base';
   }
   // get the baked modules dir for views - images etc
   public static function view_get_baked_modules_dir()

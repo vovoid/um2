@@ -28,7 +28,7 @@ require_once(UF_BASE.'/core/umvc.php');
 uf_application::init();
 
 header('Content-Type: text/javascript');
-if (!uf_application::get_config('dev',0))
+if (!uf_application::get_config('dev'))
 {
   $expires = 60*60*24*14;
   header("Pragma: public");

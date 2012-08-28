@@ -15,6 +15,7 @@ class array_translate_plugin extends translate_plugin
       $filename = $stack['file'];
       $filename = str_replace(uf_application::app_dir(), '', $filename);
       $filename = str_replace(UF_BASE, '', $filename);
+      $filename = preg_replace('/\/sites\/.+?\/.+?\//', '/', $filename);
       $filename = str_replace('/', '.', $filename);
       $this->namespace = $filename;
     } 
@@ -35,6 +36,9 @@ class array_translate_plugin extends translate_plugin
       if (isset($language[$key]))
       {
         return nl2br($this->process_string($language[$key], $args));
+      } else
+      {
+        error_log('translation key '.$key.' is not defined!');
       }
     }
     return htmlentities($str, ENT_QUOTES, 'UTF-8');
