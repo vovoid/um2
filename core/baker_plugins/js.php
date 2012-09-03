@@ -22,7 +22,9 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-class bake_js extends uf_baker
+include_once(UF_BAKER_PLUGIN_BASE.'/interface/uf_baker_plugin.php');
+
+class bake_js extends uf_baker_plugin
 {
   /**
    * Looks at a filename to determine wether or not it's this plugin's responsibility
@@ -104,9 +106,9 @@ class bake_js extends uf_baker
       foreach($files as $file)
       {
         $data = file_get_contents(UF_BASE.$file);
-        $data = str_replace('[uf_module]', self::view_get_baked_modules_dir(), $data);
-        $data = str_replace('[uf_base]', self::view_get_baked_base_dir(), $data);
-        $data = str_replace('[uf_lib]', self::view_get_baked_dir().'/lib', $data);
+        $data = str_replace('[uf_module]', uf_baker::view_get_baked_modules_dir(), $data);
+        $data = str_replace('[uf_base]', uf_baker::view_get_baked_base_dir(), $data);
+        $data = str_replace('[uf_lib]', uf_baker::view_get_baked_dir().'/lib', $data);
         $output .= $data."\n";
       }
     }
@@ -123,7 +125,11 @@ class bake_js extends uf_baker
    */
   public function bake__post($dest, &$baked_result)
   {
-    include_once( UF_BAKER_PLUGIN_BASE.'/lib/jsmin.php');
+    if (! (isset($this->config['minify']) && $this->config['minify'] === TRUE) )
+    return;
+
+    // include minifier class
+    include_once( UF_BAKER_PLUGIN_BASE.'/lib/js.php');
     $baked_result = JSMin::minify($baked_result);
   }
 }

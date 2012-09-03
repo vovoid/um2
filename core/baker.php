@@ -36,7 +36,7 @@ class uf_baker
   private static $_plugins;
  
  
-  private static function _load_plugin($type)
+  private static function _load_plugin( $type, $config )
   {
     $plugin_filename = UF_BAKER_PLUGIN_BASE.'/'.$type.'.php';
     
@@ -44,6 +44,7 @@ class uf_baker
     {
       error_log('loading plugin '.$type.'...');
       self::$_plugins[$type] = include($plugin_filename);
+      self::$_plugins[$type]->set_config( $config );
     }
   }
  
@@ -241,12 +242,11 @@ class uf_baker
     if (!is_array(self::$_plugins))
     {
       self::$_plugins = array();
-      self::_load_plugin('css');
-      self::_load_plugin('images');
-      self::_load_plugin('js');
-      self::_load_plugin('routing');
-      self::_load_plugin('language');
-      /// TODO: load from config instead.
+      $plugin_config = uf_application::get_config('baker');
+      while ( list( $plugin_name, $config) = each($plugin_config) )
+      {
+        self::_load_plugin( $plugin_name, $config );
+      }
     }
   }
 

@@ -24,13 +24,9 @@
 */
 
 
-/*
+include_once(UF_BAKER_PLUGIN_BASE.'/interface/uf_baker_plugin.php');
 
-  This baker plugin takes image files and puts them in web/data
-
-*/
-
-class bake_images extends uf_baker
+class bake_images extends uf_baker_plugin
 {
   /**
    * Looks at a filename to determine wether or not it's this plugin's responsibility
@@ -144,7 +140,7 @@ class bake_images extends uf_baker
    * @param array $baked_result String containing the contents of the baking
    *              depending on destination of the baking run.
    */
-  public function bake__post(&$baked_result)
+  public function bake__post($dest, &$baked_result)
   {
   }
 }

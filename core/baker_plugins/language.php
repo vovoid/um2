@@ -22,7 +22,9 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-class bake_language extends uf_baker
+include_once(UF_BAKER_PLUGIN_BASE.'/interface/uf_baker_plugin.php');
+
+class bake_language extends uf_baker_plugin
 {
   /**
    * Looks at a filename to determine wether or not it's this plugin's responsibility
@@ -80,7 +82,7 @@ class bake_language extends uf_baker
     error_log('baking language');
     $output = '<?php' . "\n";
     $output .= 'return array('. "\n";
-    $bake_output_directory = self::get_baked_cache_dir().'/'.uf_application::host().'/language';
+    $bake_output_directory = uf_baker::get_baked_cache_dir().'/'.uf_application::host().'/language';
     $output_array = array();
     sort($files);
     foreach ($files as $file)

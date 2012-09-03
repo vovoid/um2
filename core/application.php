@@ -57,11 +57,6 @@ class uf_application
       {
         include_once(UF_BASE.self::$_app_sites_host_dir.'/config.php');
       }
-
-      if(self::get_config('always_bake'))
-      {
-        uf_baker::bake_all();
-      }
       
       if(uf_application::get_config('load_propel'))
       {

@@ -23,15 +23,14 @@
 */
 
 /*
-
   This baker plugin compiles a single css file
-
 */
 
+include_once(UF_BAKER_PLUGIN_BASE.'/interface/uf_baker_plugin.php');
 
-class bake_css extends uf_baker
+class bake_css extends uf_baker_plugin
 {
-    /**
+  /**
    * Looks at a filename to determine wether or not it's this plugin's responsibility
    *
    * This will operate on the full_path_to_file to identify - either via opening
@@ -109,8 +108,15 @@ class bake_css extends uf_baker
    * @param array $baked_result String containing the contents of the baking
    *              depending on destination of the baking run.
    */
-  public function bake__post(&$baked_result)
+  public function bake__post($dest, &$baked_result)
   {
+    if ( !( isset($this->config['minify'] ) && $this->config['minify'] === TRUE) )
+    return;
+    
+    // include minifier class
+    include_once( UF_BAKER_PLUGIN_BASE.'/lib/css.php');
+    $baked_result = Minify_CSS_Compressor::process($baked_result);
+    
   }  
 }
 

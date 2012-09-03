@@ -1,6 +1,8 @@
 <?
 
-class bake_routing extends uf_baker
+include_once(UF_BAKER_PLUGIN_BASE.'/interface/uf_baker_plugin.php');
+
+class bake_routing extends uf_baker_plugin
 {
   /**
    * Looks at a filename to determine wether or not it's this plugin's responsibility
