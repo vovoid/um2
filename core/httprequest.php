@@ -3,8 +3,8 @@
 * Project: µm2 model2 framework
 *
 * @author David Brännvall, Jonatan 'jaw' Wallmander.
-*        Copyright 2011 HR North Sweden AB http://hrnorth.se
-*        Copyright 2011 Vovoid Media Technologies http://vovoid.com/um2
+*        Copyright 2011-2012 HR North Sweden AB http://hrnorth.se
+*        Copyright 2011-2012 Vovoid Media Technologies AB http://vovoid.com/um2
 * @see The GNU Public License (GPL)
 *
 * This program is free software; you can redistribute it and/or modify
@@ -171,41 +171,12 @@ class uf_http_request
 
     $uri_segments = explode('/',substr($uri,1));
     
-    $always_bake = uf_application::get_config('always_bake');
-
-    $pre_routing_file = uf_baker::get_baked_cache_dir().'/routing/baked.pre.routing.php';
-    ///error_log('pre routing file: '.$pre_routing_file);
-    if($always_bake)
-    {
-      uf_baker::bake('pre_routing');
-    }
-    if(file_exists($pre_routing_file))
-    {
-      include_once($pre_routing_file);
-    }
-
     // NORMAL ROUTING
     $routing_file = uf_baker::get_baked_cache_dir().'/routing/baked.routing.php';
     ///error_log('normal routing file: '.$routing_file);
-    if($always_bake)
-    {
-      uf_baker::bake('routing');
-    }
     if(file_exists($routing_file))
     {
       include_once($routing_file);
-    }
-
-    // POST ROUTING
-    $post_routing_file = uf_baker::get_baked_cache_dir().'/routing/baked.post.routing.php';
-    ///error_log('post routing file: '.$post_routing_file);
-    if($always_bake)
-    {
-      uf_baker::bake('post_routing');
-    }
-    if(file_exists($post_routing_file))
-    {
-      include_once($post_routing_file);
     }
 
     // we can now assume that:
