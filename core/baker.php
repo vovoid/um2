@@ -4,7 +4,7 @@
 *
 * @author David Brännvall, Jonatan 'jaw' Wallmander.
 *        Copyright 2011 HR North Sweden AB http://hrnorth.se
-*        Copyright 2011 Vovoid Media Technologies http://vovoid.com/um2
+*        Copyright 2012 Vovoid Media Technologies AB http://vovoid.com/um2
 * @see The GNU Public License (GPL)
 *
 * This program is free software; you can redistribute it and/or modify
@@ -25,19 +25,25 @@
 
 require_once(UF_CORE.'/umvc.php');
 
+define('UF_BAKER_PLUGIN_BASE',realpath(dirname(__FILE__).'/baker_plugins'));
+
+/// TODO: write abstract interface
+
+
 class uf_baker
 {
   private static $_files;
   private static $_plugins;
-
-  static function _load_plugin($type)
+ 
+ 
+  private static function _load_plugin($type)
   {
-    $plugin_filename = UF_CORE.'/baker_plugins/'.$type.'.php';
+    $plugin_filename = UF_BAKER_PLUGIN_BASE.'/'.$type.'.php';
     
     if ( is_file($plugin_filename) )
     {
       error_log('loading plugin '.$type.'...');
-      self::$_plugins[$type] =  include($plugin_filename);
+      self::$_plugins[$type] = include($plugin_filename);
     }
   }
  
@@ -89,11 +95,10 @@ class uf_baker
 
   private static function _scan_dir_recursive($dir)
   {
-    self::load_plugins();
-    $a = scandir(UF_BASE.$dir);
-    array_splice($a,0,2);
+    $scan_result = scandir(UF_BASE.$dir);
+    array_splice( $scan_result,0,2 ); // remove . and ..
     $out = array();
-    foreach($a as $f)
+    foreach( $scan_result as $f )
     {
       $fp = $dir.'/'.$f;
       if(is_dir(UF_BASE.$fp))
@@ -103,11 +108,8 @@ class uf_baker
       } 
       else
       {
-        if (is_array(self::$_plugins))
+        if ( !is_array(self::$_plugins) )
         {
-          //error_log('plugins is array');
-        }
-        else {
           $trace = debug_backtrace();
           error_log('plugins is not array');
           error_log($trace[3]['function'] . '    '. $trace[3]['file']);
@@ -177,115 +179,20 @@ class uf_baker
         }
       }
     }
-  }
-
-  private static function _bake_routing($files,$prefix='')
-  {
-    $output = '';
-    $prefix2 = $prefix.($prefix != '' ? '_' : '');
-    if(is_array($files))
-    {
-      foreach($files as $file)
-      {
-        $f = substr(strrchr($file,'/'),1);
-        if($prefix != '')
-        {
-          // Only prefixed files
-          if(strpos($f, 'routing_'.$prefix.'_') === 0)
-          {
-            $data = file_get_contents($file);
-            $output .= trim($data);                      
-          }
-        }
-        else
-        {
-          // Only unprefixed files
-          if(strpos($f,'routing_pre_') !== 0 && strpos($f,'routing_post_') !== 0)
-          {
-            $data = file_get_contents(UF_BASE.$file);
-            $output .= trim($data);
-          }
-        }
-      }
-    }
-    return $output;
-  }
-
-  private static function _bake_language($files)
-  {
-    if (!isset($files))
-    {
-      return NULL;
-    }
-error_log('baking language');
-    $output = '<?php' . "\n";
-    $output .= 'return array('. "\n";
-    $bake_output_directory = self::get_baked_cache_dir().'/'.uf_application::host().'/language';
-    $output_array = array();
-    sort($files);
-    foreach ($files as $file)
-    {
-      error_log($file);
-      $strings = parse_ini_file(UF_BASE.$file, TRUE);
-
-      if (!isset($strings['locale']))
-      {
-        // TODO: Alert here, locale must be set in translation files.
-        // If not locale is set in translation file, continue.
-        continue;
-      }
-
-      $locale = $strings['locale']; unset($strings['locale']);
-      foreach ($strings as $namespace => $sections)
-      {
-        foreach ($sections as $skey => $section)
-        {
-          $output_array[addslashes($namespace.'.'.$locale.'.'.$skey)] = addslashes($section);
-          //$output .= "'".addslashes($namespace.'.'.$locale.'.'.$skey)."' => '".addslashes($section)."',". "\n";
-        }
-      }
-    }
-    foreach ($output_array as $namespace => $section)
-    {
-      $output .= "'".$namespace."' => '".$section."', \n";
-    }
-    $output .= ');' . "\n\n";
-    $output .= '?>';
-    
-    return $output;
-  }
-
-  private static function _bake_js($files)
-  {
-    $output = '';
-    if(is_array($files))
-    {
-      foreach($files as $file)
-      {
-        $data = file_get_contents(UF_BASE.$file);
-        $data = str_replace('[uf_module]', self::view_get_baked_modules_dir(), $data);
-        $data = str_replace('[uf_base]', self::view_get_baked_base_dir(), $data);
-        $data = str_replace('[uf_lib]', self::view_get_baked_dir().'/lib', $data);
-        $output .= $data."\n";
-      }
-    }
-    return $output;
-  }
+  } 
 
   public static function bake($type)
   {
+    $prefix = '';
+    // split type, for instance: pre_routing
     $info = explode('_',$type);
     if(count($info) > 1)
     {
-      $prefix = $info[0];
-      $type = $info[1];
-    }
-    else
-    {
-      $prefix = '';
-      $type = $info[0];
+      $prefix = $info[0]; // pre
+      $type = $info[1]; // routing
     }
     
+    // find/scan all the files in the project
     self::_scan_dir();
 
     for($i = 0; $i < 2; $i++)
@@ -296,27 +203,13 @@ error_log('baking language');
       {
         switch($type)
         {
-          case 'routing':
-            $output .= self::_bake_routing(self::$_files[$place][$type],$prefix);
-            break;
-          case 'js':
-            if($place == 'static') 
-            {
-              $output .= file_get_contents(UF_CORE.'/umvc.js');
-            }
-            $output .= self::_bake_js(self::$_files[$place][$type]);
-            break;
-          case 'language':
-            $output .= self::_bake_language(self::$_files[$place][$type]);
-            break;
           default:
             if ( isset(self::$_plugins[$type]) )
             {
+              $output .= self::$_plugins[$type]->bake__pre( $place );
               $output .= self::$_plugins[$type]->bake__( self::$_files[$place][$type], $prefix );
-            } else
-            {
-              error_log('no baker plugin available for '.$type);
-            }
+              self::$_plugins[$type]->bake__post( $prefix, $output );
+            } 
         }      
       }
       $dir = '';
@@ -341,6 +234,39 @@ error_log('baking language');
       }
     }
   }
+  
+  
+  public static function load_plugins()
+  {
+    if (!is_array(self::$_plugins))
+    {
+      self::$_plugins = array();
+      self::_load_plugin('css');
+      self::_load_plugin('images');
+      self::_load_plugin('js');
+      self::_load_plugin('routing');
+      self::_load_plugin('language');
+      /// TODO: load from config instead.
+    }
+  }
+
+  public static function bake_all()
+  {
+    self::_delete_directry_content(self::get_baked_cache_dir());
+    self::_delete_directry_content(self::get_baked_static_dir());
+    self::load_plugins();
+    
+    error_log('plugins loaded: '.count(self::$_plugins));
+    $plugins = self::$_plugins;
+    reset($plugins);
+    
+    while (list($type, $object) = each($plugins) )
+    {
+      error_log('baking by plugin: '.$type);
+      self::bake($type);
+    }
+  }
+  
 
   // ************************************************
   // PATHS RELATIVE TO THE SYSTEM ROOT FOR USE IN PHP
@@ -376,42 +302,7 @@ error_log('baking language');
     return '/data/baker/'.uf_application::host().''.uf_application::app_name().'/modules';
   }
 
-  public static function load_plugins()
-  {
-    if (!is_array(self::$_plugins))
-    {
-      self::$_plugins = array();
-      self::_load_plugin('css');
-      self::_load_plugin('images');
-      /// TODO: load from config instead.
-    }
-  }
-
-  public static function bake_by_plugins()
-  {
-    error_log('plugins loaded: '.count(self::$_plugins));
-    $plugins = self::$_plugins;
-    reset($plugins);
-    
-    while (list($type, $object) = each($plugins) )
-    {
-      error_log('baking by plugin: '.$type);
-      self::bake($type);
-    }
-  }
-
-  public static function bake_all()
-  {
-    self::_delete_directry_content(self::get_baked_cache_dir());
-    self::_delete_directry_content(self::get_baked_static_dir());
-    self::load_plugins();
-    self::bake_by_plugins();
-    self::bake('js'); // has
-    self::bake('language'); // has
-    self::bake('pre_routing'); // has
-    self::bake('routing');  // has
-    self::bake('post_routing'); // has
-  }
+  
 }
 
 ?>
