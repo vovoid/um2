@@ -1,4 +1,4 @@
 <?
-$language['index']['title'] = 'Välkommen till UMVC';
-$language['index']['text'] = 'UMVC är ett MVC (Model/View/Controller) web framework för PHP.';
+$language['index']['title'] = 'Välkommen till µm2';
+$language['index']['text'] = 'µm2 är ett Model 2 Webb-ramverk för PHP.';
 ?>

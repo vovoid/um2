@@ -13,7 +13,7 @@
   <li><a href="<?=$uf_view->cap('examples','form-validation')?>">Form validation</a></li>
   <li><a href="<?=$uf_view->cap('examples','todo-list')?>">Todo list</a></li>
   <li><a href="<?=$uf_view->cap('examples','language')?>">Language support / performing translations for module names, actions, parameters and routing and in views</a></li>
-  <li><a href="<?=$uf_view->cap('examples','translation')?>">String translation</a></li>
+  <li><a href="<?=$uf_view->cap('examples','translation')?>">I10n</a></li>
   <li><a href="<?=$uf_view->cap('examples','debug')?>">Debug</a></li>
   <li><a href="<?=$uf_view->cap('examples','no-view')?>">No view</a></li>
   <li><a href="<?=$uf_view->cap('examples','other-view')?>">Other view</a></li>
