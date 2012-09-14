@@ -32,31 +32,36 @@ class uf_application
   private static $_language_overridden;
   private static $_request;
   private static $_response;
+
+  public static function init_config()
+  {
+    // LOAD CONFIG FILE
+    require(UF_BASE.'/config/config.php');
+    self::$_config =& $uf_config;
+
+    $n = preg_replace('/www[0-9]*\./','',$_SERVER['SERVER_NAME']);
+    $dirb = self::app_dir(FALSE).'/sites/hosts/';
+    if (!is_dir(UF_BASE.$dirb.$n))
+    {
+      self::$_app_sites_host_dir = $dirb.'FALLBACK';
+    }
+    else
+      self::$_app_sites_host_dir = $dirb.$n;
+
+    // look for site-specific override configuration
+    if (is_file(UF_BASE.self::$_app_sites_host_dir.'/config.php'))
+    {
+      include_once(UF_BASE.self::$_app_sites_host_dir.'/config.php');
+    }
+  }
   
   public static function init()
   {
     if(!isset(self::$_is_initialized))
     {
       self::$_is_initialized = TRUE;
-      
-      // LOAD CONFIG FILE
-      require_once(UF_BASE.'/config/config.php');
-      self::$_config =& $uf_config;
 
-      $n = preg_replace('/www[0-9]*\./','',$_SERVER['SERVER_NAME']);
-      $dirb = self::app_dir(FALSE).'/sites/hosts/';
-      if (!is_dir(UF_BASE.$dirb.$n))
-      {
-        self::$_app_sites_host_dir = $dirb.'FALLBACK';
-      }
-      else
-        self::$_app_sites_host_dir = $dirb.$n;
-
-      // look for site-specific override configuration
-      if (is_file(UF_BASE.self::$_app_sites_host_dir.'/config.php'))
-      {
-        include_once(UF_BASE.self::$_app_sites_host_dir.'/config.php');
-      }
+      self::init_config();
       
       if(uf_application::get_config('load_propel'))
       {
