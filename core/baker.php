@@ -259,13 +259,13 @@ class uf_baker
     self::_delete_directry_content(self::get_baked_static_dir());
     self::load_plugins();
     
-    error_log('plugins loaded: '.count(self::$_plugins));
+    //error_log('plugins loaded: '.count(self::$_plugins));
     $plugins = self::$_plugins;
     reset($plugins);
     
     while (list($type, $object) = each($plugins) )
     {
-      error_log('baking by plugin: '.$type);
+      error_log('> '.$type);
       self::bake($type);
     }
   }

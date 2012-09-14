@@ -79,7 +79,6 @@ class bake_language extends uf_baker_plugin
     {
       return NULL;
     }
-    error_log('baking language');
     $output = '<?php' . "\n";
     $output .= 'return array('. "\n";
     $bake_output_directory = uf_baker::get_baked_cache_dir().'/'.uf_application::host().'/language';
@@ -87,7 +86,7 @@ class bake_language extends uf_baker_plugin
     sort($files);
     foreach ($files as $file)
     {
-      error_log($file);
+      //error_log($file);
       $strings = parse_ini_file(UF_BASE.$file, TRUE);
 
       if (!isset($strings['locale']))
