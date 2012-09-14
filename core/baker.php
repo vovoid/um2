@@ -74,7 +74,8 @@ class uf_baker
   
   private static function _delete_directry_content($dir)
   {
-    $files = scandir($dir);
+    $files = @scandir($dir);
+    if (is_array($files))
     foreach($files as $file)
     {
       if(strpos($file, '.') === 0) continue;
@@ -243,7 +244,9 @@ class uf_baker
     {
       self::$_plugins = array();
       $plugin_config = uf_application::get_config('baker');
-      while ( list( $plugin_name, $config) = each($plugin_config) )
+      while ( list( $plugin_name,
+      $config) =
+      each($plugin_config) )
       {
         self::_load_plugin( $plugin_name, $config );
       }
