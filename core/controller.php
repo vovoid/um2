@@ -792,7 +792,7 @@ class uf_view
   //     $path           the relative path to the file you want to include.
   //                     Examples: 'view/sub_views/static_list.html'
   //                               'view/footer.php'
-  public function get_partal_filename($controller, $path)
+  public function get_partial_filename($controller, $path)
   {
     $controller_identifier = uf_controller::str_to_controller($controller);
     if($controller_identifier == 'base')
@@ -825,7 +825,7 @@ class uf_view
   //                               'view/footer.php'
   public function include_partial($controller, $path)
   {
-    $partial_file = uf_view::get_partal_filename($controller, $path);
+    $partial_file = uf_view::get_partial_filename($controller, $path);
     if(file_exists($partial_file))
     {
       return include($partial_file);
